@@ -8,6 +8,7 @@
 \usepackage{algpseudocode}
 \usepackage{mathtools}
 \usepackage{xcolor}
+\usepackage{float}
 \usepackage{framed}
 \usepackage{listings}
 \lstset{basicstyle=\ttfamily,
@@ -92,7 +93,7 @@ Let us look at two player \textit{perfect information}\footnote{Each player know
 
 We can create a structure known as a game tree, which is a tree linking all the possible states the game can find itself in.
 Here each state corresponds to a node in the tree, with the starting position as the root. The children of each node correspond to the states reachable from the original node's state.
-\begin{figure}[h!]
+\begin{figure}[H]
     \centering
     \includegraphics[width=0.6\textwidth]{images/tic_tac_toe_game_tree.png}
     \caption{The first three levels of the game tree of Tic Tac Toe (upto symmetry)}
@@ -214,6 +215,8 @@ Some key points to note are:
 \end{itemize}
 The presence of only one state in a bandit, allows us to use these to explore methods of balancing exploration and exploitation more easily.
 
+% We can also define the regret of a move as $\max(q(a), a \in A) - q(A_{t})$.
+
 \section{Balancing Exploration and Exploitation}
 Let $A$ denote the set of possible actions. For each $a \in A$, let $q(a)$ denote the expected reward for that action. We define the value of each action as $q(a)$. If we knew the values of each state,
 the optimal policy would be to choose the action with the highest value each time.
@@ -260,7 +263,7 @@ Here, we always choose the action with the highest estimated value.
 Very little exploration happens here. However, we can increase the amount of exploration, at least in the initial stages, by exploiting the fact that the initial values $Q_{0}(a)$ are set by us.
 This is known as \textbf{Optimistic Initial Value Selection}. Here, we set $Q_{0}(a) >> q(a)$. Therefore, for the first few actions, $Q_{t}(a)$ will only decrease. This means that the greedy policy will 
 choose actions that haven't been chosen earlier, encouraging exploration. We can use this method with the other policies as well, including the ones described later. 
-\begin{figure}[h!]
+\begin{figure}[H]
     \centering
     \includegraphics[width=0.9\textwidth]{images/optimistic-policy.jpg}
     \caption{Here we have prepared a testbed of 100 identical 10 armed bandits, and we test multiple strategies on this testbed. \texttt{\% Optimal Action} refers to the percentage of bandits in the testbed choosing the action with the highest value. One can see that the optimistic greedy policy sometimes outperforms realistic versions of even non-greedy algorithms.}
@@ -280,7 +283,7 @@ $Q_{t}$ (and if the bandit is stationary), this means that $\forall a \in A, Q_{
 If $\epsilon = 0$, then this strategy reduces to the greedy policy. For small values of $\epsilon$, the agent learns slowly, and for larger values it learns more quickly.
 However, asymptotically, the agent performs better with smaller values of $\epsilon$ than with larger values.
 
-\begin{figure}[h!]
+\begin{figure}[H]
     \centering
     \includegraphics[width=0.9\textwidth]{images/Epsilon-greedy.png}
     \caption{We again use the same testbed described earlier and compare greedy and $\epsilon$-greedy policies. \texttt{Average Reward} here refers to the average reward each agent obtained at a particular timestep. As we can see, the $\epsilon$-greedy policies perform better than the greedy policies. Among the $\epsilon$-greedy policies, the one with the lower $\epsilon$ learns slower, but asymptotically performs better than the one with higher $\epsilon$.}
@@ -297,11 +300,11 @@ When $N_{t}(a)$ is $0$, we set the argument to $\infty$. The reason we keep the 
 which states that the uncertainty in an estimate after $n$ measurements is proportional to $\frac{1}{\sqrt{n}}$. The $\sqrt{\ln t}$ term appears because that is a function that, although grows extremely slowly,
 is unbounded. This ensures that as $t \rightarrow \infty$, $N_{t}(a) \rightarrow \infty, \forall a \in A$. 
 
-The UCBA policy is one of the most effective ways of dealing with stationary bandits, however, it does not generalize very well 
-to non-stationary bandits.
+The UCBA policy is one of the most effective ways of dealing with stationary bandits\footnote{This is because it can be shown the total regret with the UCBA policy at the $t^{th}$ timestep grows as $O(\log t)$. Here the regret at a particular move is defined as $\max(q(a), a \in A) - q(A_{t})$.}, however, it does not generalize very well
+to non-stationary bandits. 
 \begin{figure}[h!]
     \centering
-    \includegraphics[width=0.9\textwidth]{images/UCBA.png}
+    \includegraphics[width=0.7\textwidth]{images/UCBA.png}
     \caption{We use the same testbed again to compare the UCBA and $\epsilon$-greedy policies. As you can see, the UCBA policy is better.}
 \end{figure}
 
@@ -330,15 +333,33 @@ Therefore, we can use Stochastic Gradient Ascent, where
     H_{t + 1}(a) = H_{t}(a) + \alpha (R_{t} - \overline{R_{t}})(\mathop{\mathbb{I}}(a = A_{t}) - \pi_{t}(a)), \forall a \in A
 \end{equation}
 where $A_{t}$ is the chosen action and $R_{t}$ is the obtained reward.
-\begin{figure}[h!]
+
+Equation (2.12) remains valid if $\overline{R_{t}}$ is replaced by any constant $X_{t}$. However, putting $X_{t} = \overline{R_{t}}$ improves the performance of the algorithm greatly by improving the speed of convergence of the gradient ascent and ensuring that below average rewards are punished immediately, as we can see in the following graph.
+\begin{figure}[H]
     \centering
-    \includegraphics[width=0.6\textwidth]{images/gradient-bandit.png}
-    \caption{Equation (2.12) remains valid if $\overline{R_{t}}$ is replaced by any constant $X_{t}$. However, putting $X_{t} = \overline{R_{t}}$ improves the performance of the algorithm greatly by improving the speed of convergence of the gradient ascent and ensuring that below average rewards are punished immediately, as we can see in this graph.}
+    \includegraphics[width=0.7\textwidth]{images/gradient-bandit.png}
+    \caption{We use the previously discussed testbed to compare different types of Gradient Ascent algorithms.}
 \end{figure}
 
-\subsection{Comparing Policies}
+\subsection{Thompson Sampling}
+This is a Bayesian approach to the multiarmed bandit problem. It can be used when the class of the reward distributions for the actions is known or can be reasonably guessed.
+We assume that $R(a) \sim P(R; \theta_{a})$, ie, the rewards for each action are drawn from the same family of probability distributions, differing only in parameter $\theta$.
+
+We use Baye's Theorem to get the posterior distribution of $\theta_{a}$ for each $a \in A$, assuming a suitable prior (usually the conjugate prior, to make our calculations easier)
+\begin{equation}
+    P(\theta_{a} | R_{1}, R_{2} \dots) = \frac{P(R_{1}, R_{2} \dots | \theta_{a})P(\theta_{a})}{P(R_{1}, R_{2} \dots)}
+\end{equation}
+We then sample\footnote{We sample $\theta$ instead of estimating it from the posterior as estimating can make this policy too greedy} $\theta^{*}_{a}$ from each posterior distribution. We then choose the action with the highest value ($\mathop{\mathbb{E}}_{\theta^{*}_{a}}\left[R\right]$), where the values are calculated according to the 
+sampled parameters.
+
+This policy is often even more efficient then the UCBA policy, as this - like the UCBA policy - focuses exploration on actions that are nearly optimal, or actions with a high variance.
+
+A disadvantage of this method is that it is more computationally expensive than the others discussed so far.
+
+\section{Comparing Policies}
 Note that all of these policies have parameters that change the effectiveness of the policies. For each policy it is the case that the parameters have optimal values that make the policies as optimal as possible.
-Considering the policies with their parameters optimized, it seems that for stationary bandits, the Upper Confidence Bound Action (UCBA) Selection Policy performs the best.
+Considering the policies with their parameters optimized, it seems that for stationary bandits, the Upper Confidence Bound Action (UCBA) Selection Policy\footnote{This may be because it can be shown the total regret with the UCBA policy at the $t^{th}$ timestep grows as $O(\log t)$. Here the regret at a particular move is defined as $\max(q(a), a \in A) - q(A_{t})$.} and Thompson Sampling\footnote{Not shown in this graph} perform the best. 
+
 \begin{figure}[h!]
     \centering
     \includegraphics[width=0.9\textwidth]{images/compare-bandit.png}
