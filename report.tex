@@ -199,6 +199,8 @@ Therefore, our algorithm eventually learns to play against a particular opponent
 During training our strategy would be to balance exploration (greedy moves) and exploitation (non-greedy moves) in some way, but after training
 we will only make greedy moves, ie, our strategy would be to just move to the state with highest value for us (same as the Minimax strategy).
 
+We will elaborate more on this in the chapters on Markov Decision Processes and Dynamic Programming.
+
 \chapter{Multiarmed Bandits}
 \section{Definitions}
 An \textit{n-armed bandit} is defined in terms of the following situation:
@@ -379,6 +381,8 @@ For example, say we have $k$ normal bandits. Each time we take an action on a ba
 ie, before we take an action we know which bandit we are dealing with. This situation behaves exactly like a contextual bandit with $k$ states. In this scenario we can learn a separate policy for each bandit.
 
 The conditions of \textbf{independence} and \textbf{distinguishability} allow us to decouple this problem into $k$ single state problems.
+
+\chapter{Markov Decision Processes}
 
 % \section{Itemization in Unordered Lists}
 % The same thing, but as an unordered list.
