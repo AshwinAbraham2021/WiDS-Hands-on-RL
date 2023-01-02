@@ -383,7 +383,170 @@ ie, before we take an action we know which bandit we are dealing with. This situ
 The conditions of \textbf{independence} and \textbf{distinguishability} allow us to decouple this problem into $k$ single state problems.
 
 \chapter{Markov Decision Processes}
+\section{Formalization of the Reinforcement Learning Problem}
+Here, we will formalize the Reinforcement Learning problem we have stated informally so far, ie, where an agent selects an action based on the state of the environment in order to maximize the cumulative reward it recieves.
 
+We assume the agent and the environment interact with each other in discrete time steps $t = 0, 1, 2 \dots$. At each time step, the agent recieves the state of the environment ($S_{t} \in S$) and makes a choice ($A_{t} \in A(S_{t})$) based on that state 
+and earns a reward $R_{t + 1}$\footnote{$R_{t}$ represents the reward before the $t^{th}$ timestep. We set $R_{0} = 0$ by convention.} and transitions to state $S_{t + 1}$. 
+
+The agent follows a policy $\pi$, where $\pi(a | s) = \mathop{\mathbb{P}}(A_{t} = a | S_{t} = s)$\footnote{In general, the agents policy will be a function of time, $\pi_{t}(a | s) = \mathop{\mathbb{P}}(A_{t} = a | S_{t} = s)$ which changes as the agent learns. However, we assume the agent 
+has a stationary policy in order to calculate certain values associated with each state. After each timestep, we will use these values (calculated with the old policy) to update our policy. Towards the end our policy will reach a stationary optimal policy.}. Our agent must learn the optimal policy.
+
+\section{Return and Discounting}
+However, we have not yet formally defined what it is that we must optimize. So far we have been talking about optimizing the expected cumulative reward $R_{t + 1} + R_{t + 2} + \dots$. However, for tasks that do not terminate eventually, this becomes an infinite sum, which may not converge.
+Therefore, we define a quantity known as the return $G_{t}$ in different ways for different tasks. It is the expected return $\mathop{\mathbb{E}}(G_{t})$ that the agent seeks to maximize at each timestep.
+
+Tasks that always terminate after a finite number of timesteps are known as episodic tasks. For such tasks, we can define $G_{t}$ as the cumulative reward obtained from the $t^{th}$ timestep onwards.
+\begin{equation}
+    G_{t} = \sum\limits_{k = 0}^{T - k - 1} R_{t + k + 1}
+\end{equation}
+
+For non-episodic tasks however, this sum may not converge. Therefore, we introduce the concept of discounting, where we value rewards obtained later less than those obtained sooner. To be precise, we define $G_{t}$ as:
+\begin{equation}
+    G_{t} = \sum\limits_{k = 0}^{\infty} \gamma^{k}R_{t + k + 1}
+\end{equation}
+where $0 \leq \gamma \leq 1$. If $\gamma < 1$ and the rewards are bounded then this sum will always converge. $G_{t}$ will satisfy the recurrence $G_{t} = R_{t + 1} + \gamma G_{t + 1}$ (this recurrence will prove useful later on).
+
+$\gamma$ is known as the \textit{discount rate}, and determines how far sighted our agent is. If $\gamma = 0$, then our 
+agent is said to be greedy (or) myopic, as in this $\mathop{\mathbb{E}}(G_{t}) = \mathop{\mathbb{E}}(R_{t + 1})$, and therefore the optimal policy would be to choose the action with the highest expected reward without worrying about future rewards.
+
+We can unify the notation for episodic and non-episodic tasks by having the terminal states of episodic tasks have only a single action, that always gives $0$ reward and never changes the state of the environment.
+We can then define the return for all tasks using equation (3.2), with $\gamma = 1$ for episodic tasks. Note that for episodic tasks, if $S_{t}$ is a terminal state, $G_{t} = 0$.
+
+\section{Markov Decision Processes and the Markov Property}
+The current state should provide enough information to determine the probability distributions of the rewards and the transition probabilities to the next state (given the next state). At the most it can contain an entire description of the history of the environment 
+upto the present moment. This is quantified mathematically by saying the states and rewards must satisfy the \textit{Markov Property}, ie 
+\begin{equation}
+    \mathop{\mathbb{P}}(S_{t + 1} = s, R_{t + 1} = r | S_{t}, A_{t}, R_{t}, S_{t - 1}, A_{t - 1} \dots) = \mathop{\mathbb{P}}(S_{t + 1} = s, R_{t + 1} = r | S_{t}, A_{t})
+\end{equation}
+for all $r$, $s \in S$. This means that the distributions of the rewards and the next state depend only on the current state and the action chosen.
+
+For notational convenience, we will use $p(r, s' | s, a)$ to denote this distribution, ie 
+\begin{equation}
+    p(s', r | s, a) = \mathop{\mathbb{P}}(S_{t + 1} = s', R_{t + 1} = r | S_{t} = s, A_{t} = a)
+\end{equation}
+
+We say a task is a \textit{complete-knowledge} task if the distribution $p(s', r | s, a)$ is known before hand, and an \textit{incomplete-knowledge} task if it is unknown, and must be learnt by the agent.
+
+$p(s', r | s, a)$ along with the set of states $S$, set of actions for each state $A(s)$ (for $s \in S$) completely specifies the task at hand. Tasks that can be formulated this way in terms of 
+states and actions are known as \textbf{Markov Decision Processes}. Along with the agents policy $\pi(s | a)$, the entire interaction between the Agent and the Environment is specified.
+
+We can define $R_{sa}$ as the expected reward given a state-action pair.
+\begin{equation}
+    R_{sa} = \mathop{\mathbb{E}}\left[R_{t + 1} | S_{t} = s, A_{t} = a\right] = \sum\limits_{r, s' \in S} r p(s', r | s, a)
+\end{equation}
+The state transition probability $P_{ss'}^{a}$ is defined as the probability of transitioning from state $s$ to state $s'$ given action $a$ was chosen.
+\begin{equation}
+    P_{ss'}^{a} = \mathop{\mathbb{P}}(S_{t + 1} = s' | S_{t} = s, A_{t} = a) = \sum\limits_{r} p(s', r | s, a)
+\end{equation}
+We can also define $R_{ss'}^{a}$ as the expected reward given a triplet of the current state $s$, the chosen action $a$, and the next state $s'$.
+\begin{equation}
+    R_{ss'}^{a} = \mathop{\mathbb{E}}\left[R_{t + 1} | S_{t} = s, S_{t + 1} = s', A_{t} = a\right] = \frac{\sum\limits_{r} r p(s', r | s, a)}{\sum\limits_{r} p(s', r | s, a)}
+\end{equation}
+
+We can diagramatically represent Markov Decision Processes via Transition Diagrams, which are directed multigraphs in which each node represents a state, and between every two nodes representing states 
+$s, s' \in S$, there is an edge from node $s$ to node $s'$ for each action $a \in A(s)$. These edges are associated with the state transition probabilities $P_{ss'}^{a}$ and the expected rewards $R_{ss'}^{a}$.
+The sum of $P_{ss'}^{a}$ for all edges leaving a node $s$ is always $1$.
+
+\section{The Bellman Equations}
+For every state $s$ in the MDP, we can define it's value under the policy $\pi$ as 
+\begin{equation}
+    v_{\pi}(s) = \mathop{\mathbb{E}}\left[G_{t} | S_{t} = s\right]
+\end{equation}
+$v_{\pi}$ is known as the state-value function.
+
+We can also define $q_{\pi}$ (known as the action-value function) as 
+\begin{equation}
+    q_{\pi}(s, a) = \mathop{\mathbb{E}}\left[G_{t} | S_{t} = s, A_{t} = a\right]
+\end{equation}
+
+From the total probability theorem, we can conclude that 
+\begin{equation}
+    v_{\pi}(s) = \sum\limits_{a \in A(s)} q_{\pi}(s, a)\pi(a | s)
+\end{equation}
+
+Now, we can also find $q_{\pi}$ in terms of $v_{\pi}$.
+\begin{equation}
+    q_{\pi}(s, a) = \mathop{\mathbb{E}}\left[G_{t} | S_{t} = s, A_{t} = a\right] = \mathop{\mathbb{E}}\left[R_{t + 1} + \gamma G_{t + 1} | S_{t} = s, A_{t} = a\right]
+\end{equation} 
+Hence,
+\begin{equation}
+    q_{\pi}(s, a) = \sum\limits_{r, s' \in S} p(s', r | s, a)(r + \gamma \mathop{\mathbb{E}}\left[G_{t + 1} | S_{t + 1} = s', S_{t} = s, A_{t} = a\right])
+\end{equation}
+By the Markov Property, 
+\begin{equation}
+    \mathop{\mathbb{E}}\left[G_{t + 1} | S_{t + 1} = s', S_{t} = s, A_{t} = a\right] = \mathop{\mathbb{E}}\left[G_{t + 1} | S_{t + 1} = s'\right] = v_{\pi}(s')
+\end{equation}
+Therefore,
+\begin{equation}
+    q_{\pi}(s, a) = \sum\limits_{r, s' \in S} p(s', r | s, a)(r + \gamma v_{\pi}(s'))
+\end{equation}
+
+Using equations (3.10) and (3.14) we can get recursive relations for $q_{\pi}$ and $v_{\pi}$.
+\begin{equation}
+    q_{\pi}(s, a) = \sum\limits_{r, s' \in S} p(s', r | s, a)(r + \gamma\sum\limits_{a' \in A(s')}\pi(a' | s') q_{\pi}(s', a'))
+\end{equation}
+\begin{equation}
+    v_{\pi}(s) = \sum\limits_{\substack{a \in A(s)\\r, s' \in S}} \pi(a | s) p(s', r | s, a)(r + \gamma v_{\pi}(s'))
+\end{equation}
+
+These equations are known as the \textbf{Bellman Equations} for the Action Value and State Value functions respectively. Using these equations, for any policy $\pi$, we can find all the $v_{\pi}(s)$ and 
+$q_{\pi}(s, a)$ for all $s, a$ up assuming we know the dynamics of the MDP ($p(s', r | s, a)$). This is because we usually know the values of some states of the MDP already, or we can assign values to these 
+based on some heuristic. For example, in episodic MDPs, the terminal states have $0$ value. From these states, we can work from the bottom up to find all the values.
+
+\section{Bellman Optimality Equations}
+We say a policy $\pi_{1}$ is better than a policy $\pi_{2}$ for an MDP if $\forall s \in S, v_{\pi_{1}}(s) \geq v_{\pi_{2}}(s)$ and $\forall s \in S, a \in A(S), q_{\pi_{1}}(s, a) \geq q_{\pi_{2}}(s, a)$ (note that due to equations (3.10) and (3.14) these two conditions are equivalent)\footnote{There may be policies which are not comparable, ie Now, if $v_{\pi_{1}}(s) \geq v_{\pi_{2}}(s)$ for some $s$ and $v_{\pi_{1}}(s) < v_{\pi_{2}}(s)$ for other $s$. We have defined in this way a \textit{partial order} on policies.}.
+It can be shown that there will always exist an optimal policy $\pi^{*}$ that satifies $v_{\pi^{*}}(s) \geq v_{\pi}(s)$ and $q_{\pi^{*}}(s, a) \geq q_{\pi}(s, a)$, $\forall s \in S, \forall \text{ policies } \pi$. Although there may be many optimal policies, it is easy to show that $v_{\pi^{*}}$ and $q_{\pi^{*}}$ are unique\footnote{If $v_{1}$ and $v_{2}$ are the state value functions for two optimal policies, then $\forall s \in S$, $v_{1}(s) \geq v_{2}(s)$ and $v_{2}(s) \geq v_{1}(s)$.}. To show this uniqueness, we write $v_{*} = v_{\pi^{*}}$ and $q_{*} = q_{\pi^{*}}$.
+Clearly, $\forall s \in S, a \in A(S)$ $q_{*}(s, a) = \max_{\pi}(q_{\pi}(s, a))$ and $v_{*}(s) = \max_{\pi}(v_{\pi}(s))$.
+
+We can show that the optimal value functions must satisfy the following equations, which are known as the \textbf{Bellman Optimality Equations}.
+\begin{equation}
+    q_{*}(s, a) = \sum\limits_{r, s' \in S} p(s', r | s, a)(r + \gamma \max_{a \in A(s')} q(s', a))
+\end{equation}
+and
+\begin{equation}
+    v_{*}(s) = \max_{a \in A(s)} q_{*}(s, a) = \max_{a \in A(s)} \sum\limits_{r, s' \in S} p(s', r | s, a)(r + \gamma v_{*}(s'))
+\end{equation}
+
+We can intuitively justify this by stating that in the optimal policy we will always choose an action that leads to maximum return, ie, 
+\begin{equation}
+    v_{*}(s) = \max\limits_{a \in A(s)} q_{*}(s, a)
+\end{equation}
+Using this along with equation (3.14), we get the Bellman Optimality Equations, and we can also show that and policy $\pi$ satisfying $\pi(a | s) \neq 0$ only if $a \in \arg\max\limits_{a \in A(s)} q_{\pi}(s, a)$ is an optimal policy (the optimal policy is greedy with respect to the action value function).
+
+A formal proof\footnote{This part is not essential reading for the project} would go as follows:
+Assume we have some function $v(s)$ that satisfies
+\begin{equation}
+    v(s) = \max_{a \in A(s)} \sum\limits_{r, s' \in S} p(s', r | s, a) (r + \gamma v(s'))
+\end{equation}
+Now, clearly (by equation (3.16)) this corresponds to an action-value function for a policy $\pi$ such that $\pi(a | s) \neq 0$ only if $a \in \arg\max\limits_{a \in A(s)} \sum\limits_{r, s' \in S} p(s', r | s, a) (r + \gamma v(s'))$. 
+By equation (3.14), the corresponding action value function would be $q(s, a) = \sum\limits_{r, s' \in S} p(s', r | s, a) (r + \gamma v(s'))$, ie $\pi(a | s) \neq 0$ only if $a \in \arg\max\limits_{a \in A(s)} q(s, a)$.
+
+Now, we shall prove that $v(s) \geq v_{\pi'}(s), \forall s \in S$ for all policies $\pi'$. This  makes $\pi$ an optimal policy\footnote{Incidentally, this means that there always exists a deterministic optimal policy for each $s \in S$, choose an $a$ in $\arg\max\limits_{a \in A(s)} q(s, a)$ and make your policy deterministically choose only that $a$, ie $\pi(a | s) = 1$ and $\pi(a' | s) = 0, \forall a' \neq a$. This deterministic policy will be optimal.}, which makes $v$ \textbf{the} optimal state value function.
+Therefore, due to uniqueness, the optimal state value function must satisfy the equation (3.20), which is nothing but the Bellman Optimality Condition for the state value function, from which we can derive the Bellman Optimality Condition for the action value function (using equation (3.14) along with the fact that $v(s) = \max\limits_{a \in A(s)} q(s, a)$).
+
+To prove that $v(s) \geq v_{\pi'}(s), \forall s \in S$, for all policies $\pi'$, we proceed by induction.
+
+For the terminal states $v(s) = v_{\pi'}(s) = 0$, therefore, $v(s) \geq v_{\pi'}(s)$. Now, assume for some state $s$, every $s'$ with $p(s', r | s, a) > 0$ for some $r$ has $v(s') \geq v_{\pi'}(s')$.
+Now,
+\begin{equation}
+    v(s) = \max_{a \in A(s)} \sum\limits_{r, s' \in S} p(s', r | s, a) (r + \gamma v(s')) \geq \max_{a \in A(s)} \sum\limits_{r, s' \in S} p(s', r | s, a) (r + \gamma v_{\pi'}(s'))
+\end{equation}
+Therefore,
+\begin{equation}
+    v(s) \geq \sum\limits_{\substack{a \in A(s)\\r, s' \in S}} \pi'(a | s) p(s', r | s, a) (r + \gamma v_{\pi'}(s')) = v_{\pi'}(s)
+\end{equation}
+Hence,
+\begin{equation}
+    v(s) \geq v_{\pi'}(s)
+\end{equation}
+
+Therefore, by the inductive principle $\forall s \in S, v(s) \geq v_{\pi'}(s)$. Using this, we can prove the Bellman Optimality Conditions via the method described above.
+\section{Solving the Bellman Optimality Conditions}
+In principle, if the dynamics of the MDP ($p(s', r | s, a)$) are known (the MDP is complete knowledge), then we can solve the Bellman Optimality Equations from the bottom up, and use these to find the optimal policy, ie, we can solve the Reinforcement Learning Problem.
+
+The two principal difficulties with this are that, often $p(s', r | s, a)$ are not known beforehand and must be learnt, and that in most situations the number of states is too large for the previously described method to be computationally feasible. Therefore, we develop various methods and 
+hueristics in order to approximately solve these equations.
 % \section{Itemization in Unordered Lists}
 % The same thing, but as an unordered list.
 % \begin{itemize}
