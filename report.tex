@@ -522,12 +522,12 @@ Assume we have some function $v(s)$ that satisfies
 Now, clearly (by equation (3.16)) this corresponds to an action-value function for a policy $\pi$ such that $\pi(a | s) \neq 0$ only if $a \in \arg\max\limits_{a \in A(s)} \sum\limits_{r, s' \in S} p(s', r | s, a) (r + \gamma v(s'))$. 
 By equation (3.14), the corresponding action value function would be $q(s, a) = \sum\limits_{r, s' \in S} p(s', r | s, a) (r + \gamma v(s'))$, ie $\pi(a | s) \neq 0$ only if $a \in \arg\max\limits_{a \in A(s)} q(s, a)$.
 
-Now, we shall prove that $v(s) \geq v_{\pi'}(s), \forall s \in S$ for all policies $\pi'$. This  makes $\pi$ an optimal policy\footnote{Incidentally, this means that there always exists a deterministic optimal policy for each $s \in S$, choose an $a$ in $\arg\max\limits_{a \in A(s)} q(s, a)$ and make your policy deterministically choose only that $a$, ie $\pi(a | s) = 1$ and $\pi(a' | s) = 0, \forall a' \neq a$. This deterministic policy will be optimal.}, which makes $v$ \textbf{the} optimal state value function.
+Now, we shall prove that $v(s) \geq v_{\pi'}(s), \forall s \in S$ for all policies $\pi'$. This  makes $\pi$ an optimal policy\footnote{This means that any deterministic policy that is greedy with respect to it's own action value function is an optimal policy, as it is trivial to show that any such policy must satify the Bellman Optimality Equations.}, which makes $v$ \textbf{the} optimal state value function.
 Therefore, due to uniqueness, the optimal state value function must satisfy the equation (3.20), which is nothing but the Bellman Optimality Condition for the state value function, from which we can derive the Bellman Optimality Condition for the action value function (using equation (3.14) along with the fact that $v(s) = \max\limits_{a \in A(s)} q(s, a)$).
 
 To prove that $v(s) \geq v_{\pi'}(s), \forall s \in S$, for all policies $\pi'$, we proceed by induction.
 
-For the terminal states $v(s) = v_{\pi'}(s) = 0$, therefore, $v(s) \geq v_{\pi'}(s)$. Now, assume for some state $s$, every $s'$ with $p(s', r | s, a) > 0$ for some $r$ has $v(s') \geq v_{\pi'}(s')$.
+For the terminal states $v(s) = v_{\pi'}(s) = 0$, therefore, $v(s) \geq v_{\pi'}(s)$. Now, assume for some state $s$, every $s'$ with $p(s', r | s, a) > 0$ for some $r$ and some $a$ has $v(s') \geq v_{\pi'}(s')$.
 Now,
 \begin{equation}
     v(s) = \max_{a \in A(s)} \sum\limits_{r, s' \in S} p(s', r | s, a) (r + \gamma v(s')) \geq \max_{a \in A(s)} \sum\limits_{r, s' \in S} p(s', r | s, a) (r + \gamma v_{\pi'}(s'))
@@ -542,11 +542,164 @@ Hence,
 \end{equation}
 
 Therefore, by the inductive principle $\forall s \in S, v(s) \geq v_{\pi'}(s)$. Using this, we can prove the Bellman Optimality Conditions via the method described above.
+
+Note, that we here we have proved that the Bellman Optimality Equations impose a sufficient condition on the value functions for them to be optimal. The uniqueness of the value functions leads to this being a necessary condition as well.
+
 \section{Solving the Bellman Optimality Conditions}
 In principle, if the dynamics of the MDP ($p(s', r | s, a)$) are known (the MDP is complete knowledge), then we can solve the Bellman Optimality Equations from the bottom up, and use these to find the optimal policy, ie, we can solve the Reinforcement Learning Problem.
 
 The two principal difficulties with this are that, often $p(s', r | s, a)$ are not known beforehand and must be learnt, and that in most situations the number of states is too large for the previously described method to be computationally feasible. Therefore, we develop various methods and 
 hueristics in order to approximately solve these equations.
+
+\chapter{Dynamic Programming}
+\section{Introduction}
+Dynamic Programming\footnote{The name arises due to the fact that most algorithms in this class cache the values of the states encountered instead of recomputing them each time.} Algorithms are a collection of iterative algorithms that can be used to compute the optimal policy for \textbf{complete-knowledge}\footnote{$p(s', r | s, a)$ is known to the agent.} finite MDPs. 
+
+For complete knowledge finite MDPs, it is possible to explicitly solve the Bellman Optimality Equations to find the optimal value and action value functions. The optimal policy would then be greedy with respect to 
+the optimal action value function. However, solving the Bellman Optimality Equations explicitly may be computationally infeasible, especially when the number of possible states is extremely large. Hence, we develop 
+methods that iteratively converge to the Optimal Policy\footnote{An analogy with Gradient Descent may be made here. This analogy can be extended further as we discuss variations on Dynamic Programming.}.
+
+Broadly speaking, this class of algorithms starts out with an arbitrarily chosen policy and value function. The value function is then made to fit the policy more accurately, after which the policy is changed to be 
+greedy with respect to this value function. This process will eventually converge to the optimal policy and value functions for the MDP\footnote{Note that the optimal policy and value functions are fixed points of this algorithm, as the optimal policy is greedy with respect to it's own value function.}.
+
+\section{Policy Evaluation}
+Policy Evaluation refers to a class of algorithms that can be used to find the value functions for a given policy $\pi$. This can also be done explicitly by solving the Bellman Equations, but, as mentioned earlier, this becomes 
+computationally infeasible when the number of possible states ($\left|S\right|$) is extremely large. Therefore, here too we use iterative algorithms that converge to the actual value functions.
+
+These algorithms function by converting the Bellman Equations into update rules. We start with a guess value function $v_{0}$\footnote{Note that the $v_{0}(s)$ must be $0$ for all terminal states $s$. This ensures that $v_{k}(s) = 0, \forall s \in S^{T}$. This basically means our initial guess must follow the boundary conditions that $v_{\pi}$ follow $\forall \pi$.}. We then repeatedly apply the following update rule:
+\begin{equation}
+    v_{k + 1}(s) = \sum\limits_{\substack{a \in A(s)\\r, s' \in S}} \pi(a | s) p(s', r | s, a) (r + \gamma v_{k}(s)), \forall s \in S
+\end{equation}
+
+It can be shown that $\lim\limits_{k \rightarrow \infty} v_{k} = v_{\pi}$. Note, that $v_{\pi}$ itself is a fixed point of this update rule (it remains unchanged by this update), due to the Bellman Equations. This algorithm 
+is known as iterative policy evaluation. Once we find $v_{\pi}$, we can find $q_{\pi}$ via the Bellman Equations:
+\begin{equation}
+    q_{\pi}(s, a) = \sum\limits_{r, s' \in S} p(s', r | s, a)(r + \gamma\sum\limits_{a' \in A(s')}\pi(a' | s') q_{\pi}(s', a'))
+\end{equation}
+
+It is also possible to iteratively find $q_{\pi}$ instead of $v_{\pi}$ using it's Bellman Equation as an update rule, ie we start with an initial guess $q_{0}$, and update it according to:
+\begin{equation}
+    q_{k + 1}(s, a) = \sum\limits_{r, s' \in S} p(s', r | s, a)(r + \gamma\sum\limits_{a' \in A(s')}\pi(a' | s') q_{k}(s', a'))
+\end{equation}
+Here also $\lim\limits_{k \rightarrow \infty} q_{k} = q_{\pi}$, and we can therefore find $v_{\pi}$ using $v_{\pi}(s) = \sum\limits_{a \in A(s)} \pi(a | s) q_{\pi}(s, a)$. This algorithm is less efficient than the previously described one, as during each update we must iterate over the space of states and the space of actions ($S \times A$), rather than $S$ alone.
+
+Each update to the value of a state $s$ is known as a backup to $s$. We can do our backups in-place, ie, once we calculate the new value of $v(s)$ via the update rule, we immediately use this new value to update $v(s')$ for other states $s'$. This generally leads to faster convergence as we use the updated information as soon as it becomes available.
+Since, in this algorithm, to go from $v_{k}$ to $v_{k + 1}$, we update $v(s)$ for every state $s$, this update is known as a full backup. Full backups run in $O(\left|S\right|^{2})$ and therefore can be extremely computationally expensive. \textit{Asynchronous Dynamic Programming} and \textit{Generalized Policy Iteration} techniques (discussed later) provide ways for us to manage this cost.
+
+
+\section{Policy Improvement}
+We can use the computed value functions to improve our policy. This is done by changing our policy to be greedy with respect to the newly computed value function, ie 
+\begin{equation}
+    \pi'(s) = \arg\max\limits_{a \in A(s)} q_{\pi}(s, a)
+\end{equation}
+with ties broken arbitrarily\footnote{Note that $\pi'$ here is a deterministic policy, ie, $\mathop{\mathbb{P}}(A_{t} = a | S_{t} = s)$ is $1$ for $a = \pi'(s)$ and $0$ for all other $a \in A(s)$. We abuse notation for deterministic policies by using $\pi$ to stand for both $\mathop{\mathbb{P}}(A_{t} = a | S_{t} = s)$ ($\pi(a | s)$) and for the action that is chosen ($\pi(s)$).}.
+
+This new policy will be better than (or at least as good as) the previous policy. This can be formalized via the \textit{Policy Improvement Theorem}.
+\subsection{The Policy Improvement Theorem}
+The statement of the theorem is as follows:
+
+If $\pi$ and $\pi'$ are two policies such that
+\begin{equation}
+    \mathop{\mathbb{E}}_{a \sim \pi'}\left[q_{\pi}(s, a)\right] \geq v_{\pi}(s), \forall s \in S
+\end{equation}
+then
+\begin{equation}
+    v_{\pi'}(s) \geq v_{\pi}(s), \forall s \in S
+\end{equation}
+ie, $\pi'$ is at least as good a policy as $\pi$. 
+
+The proof of this theorem is as follows:
+
+Firstly, note that $\mathop{\mathbb{E}}_{a \sim \pi'}\left[q_{\pi}(s, a)\right] = \sum\limits_{a \in A(s)} \pi'(a | s) q_{\pi}(s, a)$. Therefore, our inequality becomes
+\begin{equation}
+    \sum\limits_{a \in A(s)} \pi'(a | s) q_{\pi}(s, a) \geq v_{\pi}(s), \forall s \in S
+\end{equation}
+
+Our proof is by induction. Note that for all terminal states $s$, $v_{\pi'}(s) = v_{\pi}(s) = 0$. For some state $s$, assume that every $s'$ with $p(s', r | s, a) > 0$ for some $r, a$ has $v_{\pi'}(s') \geq v_{\pi}(s')$.
+Now,
+\begin{equation}
+    v_{\pi'}(s) = \sum\limits_{\substack{a \in A(s)\\r, s' \in S}} \pi'(a | s) p(s', r | s, a) (r + \gamma v_{\pi'}(s))
+\end{equation}
+Since, $v_{\pi'}(s) \geq v_{\pi}(s)$
+\begin{equation}
+    v_{\pi'}(s) \geq \sum\limits_{\substack{a \in A(s)\\r, s' \in S}} \pi'(a | s) p(s', r | s, a) (r + \gamma v_{\pi}(s))
+\end{equation}
+The RHS here can be rewritten as $\sum\limits_{a \in A(s)} \pi'(a | s) \sum\limits_{r, s' \in S} p(s', r | s, a) (r + \gamma v_{\pi}(s))$ which is nothing but $\sum\limits_{a \in A(s)} \pi'(a | s) q_{\pi}(s, a)$.
+
+Therefore,
+\begin{equation}
+    v_{\pi'}(s) \geq \sum\limits_{a \in A(s)} \pi'(a | s) q_{\pi}(s, a) \geq v_{\pi}(s)
+\end{equation}
+Hence, $v_{\pi'}(s) \geq v_{\pi}(s)$. By induction, this means that $v_{\pi'}(s) \geq v_{\pi}(s), \forall s \in S$.
+
+\subsection{Improving our Policy}
+If we change our policy in the manner described earlier, ie 
+\begin{equation}
+    \pi'(s) = \arg\max\limits_{a \in A(s)} q_{\pi}(s, a), \forall s \in S
+\end{equation}
+then for all states $s$,
+\begin{equation}
+    \mathop{\mathbb{E}}_{a \sim \pi'}\left[q_{\pi}(s, a)\right] = \max\limits_{a \in A(s)} q_{\pi}(s, a) \geq \sum\limits_{a \in A(s)} \pi(a | s) q_{\pi}(s, a) = v_{\pi}(s)
+\end{equation}
+and therefore, by the Policy Improvement Theorem,
+\begin{equation}
+    v_{\pi'}(s) \geq v_{\pi}(s), \forall s \in S
+\end{equation}
+ie, $\pi'$ is at least as good as $\pi$.
+
+If $\pi'$ is exactly as good as $\pi$, ie 
+\begin{equation}
+    v_{\pi'}(s) = v_{\pi}(s), \forall s \in S
+\end{equation}
+then the inequality in equation (4.12) must be an equality. Therefore, 
+\begin{equation}
+    v_{\pi}(s) = \max\limits_{a \in A(s)} q_{\pi}(s, a) = \max\limits_{a \in A(s)} \sum\limits_{r, s' \in S} p(s', r | s, a)(r + \gamma v_{\pi}(s'))
+\end{equation}
+ie, $v_{\pi}$ (and therefore $v_{\pi'}$) both satisfy the Bellman Optimality Equations, and therefore both $\pi$ and $\pi'$ are optimal policies.
+
+This means that, given the value function of a policy, we can modify the policy in such as a way as to make it strictly better, unless it is already an optimal policy (in which case it can only change to another optimal policy).
+
+This leads to the idea of \textit{policy iteration}.
+\section{Policy Iteration}
+Policy Iteration refers to a class of algorithms that alternate Policy Evaluation and Policy Improvement in order to find the optimal policy for the MDP.
+
+We start with an arbitrary policy $\pi_{0}$, and compute it's value function $v_{\pi_{0}}$ via policy evaluation. The update rule we then follow is:
+\begin{itemize}
+    \item Given value function $v_{\pi_{k - 1}}$, get policy $\pi_{k}$ that is greedy with respect to $v_{\pi_{k - 1}}$ by policy improvement.
+    \item Given policy $\pi_{k}$, compute $v_{\pi_{k}}$ via policy evaluation.
+\end{itemize}
+We keep doing this until we reach an optimal policy $\pi_{*}$, which occurs when there is no improvement in the policy between the $k^{th}$ and $(k + 1)^{th}$ iterations.
+
+Doing this, we get a monotonically increasing sequence of policies and value functions during policy iteration which eventually converges to an optimal policy and the optimal value function.
+\begin{equation*}
+    \pi_{0} \xrightarrow[]{\text{E}} v_{\pi_{0}} \xrightarrow[]{\text{I}} \pi_{1} \xrightarrow[]{\text{E}} v_{\pi_{1}} \xrightarrow[]{\text{I}} \pi_{2} \xrightarrow[]{\text{E}} v_{\pi_{2}} \dots \xrightarrow[]{\text{I}} \pi_{*} \xrightarrow[]{\text{E}} v_{*}
+\end{equation*}
+
+However, Policy Iteration can be extremely computationally intensive, as it involves multiple iterations of policy evaluation, each of which involves multiple iterations of full backups, each of which involves a traversal of over each possible state of the MDP. 
+
+Therefore, we develop methods to reduce the amount of computation we need to do. One such method is \textit{value iteration}.
+
+\section{Value Iteration}
+The key idea in value iteration is that we don't need to find the exact value function $v_{\pi_{k}}$ in order to get an improvement by making our new policy greedy with respect to the value function. We can just do a few full backups and then move on to policy improvement.
+
+In value iteration, we do exactly one full backup, and move on to the policy improvement step immediately afterwards. The update rules then become:
+\begin{equation}
+    v_{k + 1}(s) = \max\limits_{a \in A(s)} \sum\limits_{r, s' \in S} p(s', r | s, a) (r + \gamma v_{k}(s))
+\end{equation}
+where, at every iteration, $\pi_{k}(s) = \arg\max\limits_{a \in A(s)} \sum\limits_{r, s' \in S} p(s', r | s, a) (r + \gamma v_{k}(s))$.
+
+Note, that equation (4.16) is nothing but the Bellman Optimality Condition converted into an update rule, and therefore the optimal value function will be a fixed point of this update rule.
+\section{Asynchronous Dynamic Programming}
+Sometimes, for large state spaces, the cost of doing even a single full backup every iteration may be too large. In these situations, it is often the case that the most states are very unlikely to occur in the agent's experience of playing the game. 
+Therefore, in asynchronous dynamic programming, we update only a subset of the states\footnote{An analogy may be drawn with stochastic gradient descent here.}, ideally the ones that are most relevant. 
+
+Asynchronous Dynamic Programming is often done by training the agent while it is experiencing the MDP. We backup only the states that the agent has encountered so far. This causes learning to be focused on the most relevant states.
+\section{Generalized Policy Iteration}
+Starting from Policy Iteration, our strategy to find the optimal policy has been to both update the value function for the states (policy evaluation) and to update the policy to make it greedy with respect to the current value function (policy improvement). Such algorithms are known as 
+Generalized Policy Iteration algorithms. To make these algorithms less computationally intensive we have spread the policy evaluation around and intermixed it more with policy improvement. This allows us to not have to wait for long policy evaluations in order to improve our policy.
+
+All Generalized Policy Iteration algorithms will eventually converge to an optimal policy, as, by the Bellman Optimality Equations, these policies are greedy with respect to their own value functions.
+
 % \section{Itemization in Unordered Lists}
 % The same thing, but as an unordered list.
 % \begin{itemize}
