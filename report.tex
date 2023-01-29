@@ -568,7 +568,7 @@ computationally infeasible when the number of possible states ($\left|S\right|$)
 
 These algorithms function by converting the Bellman Equations into update rules. We start with a guess value function $v_{0}$\footnote{Note that the $v_{0}(s)$ must be $0$ for all terminal states $s$. This ensures that $v_{k}(s) = 0, \forall s \in S^{T}$. This basically means our initial guess must follow the boundary conditions that $v_{\pi}$ follow $\forall \pi$.}. We then repeatedly apply the following update rule:
 \begin{equation}
-    v_{k + 1}(s) = \sum\limits_{\substack{a \in A(s)\\r, s' \in S}} \pi(a | s) p(s', r | s, a) (r + \gamma v_{k}(s)), \forall s \in S
+    v_{k + 1}(s) = \sum\limits_{\substack{a \in A(s)\\r, s' \in S}} \pi(a | s) p(s', r | s, a) (r + \gamma v_{k}(s')), \forall s \in S
 \end{equation}
 
 It can be shown that $\lim\limits_{k \rightarrow \infty} v_{k} = v_{\pi}$. Note, that $v_{\pi}$ itself is a fixed point of this update rule (it remains unchanged by this update), due to the Bellman Equations. This algorithm 
@@ -618,13 +618,13 @@ Firstly, note that $\mathop{\mathbb{E}}_{a \sim \pi'}\left[q_{\pi}(s, a)\right] 
 Our proof is by induction. Note that for all terminal states $s$, $v_{\pi'}(s) = v_{\pi}(s) = 0$. For some state $s$, assume that every $s'$ with $p(s', r | s, a) > 0$ for some $r, a$ has $v_{\pi'}(s') \geq v_{\pi}(s')$.
 Now,
 \begin{equation}
-    v_{\pi'}(s) = \sum\limits_{\substack{a \in A(s)\\r, s' \in S}} \pi'(a | s) p(s', r | s, a) (r + \gamma v_{\pi'}(s))
+    v_{\pi'}(s) = \sum\limits_{\substack{a \in A(s)\\r, s' \in S}} \pi'(a | s) p(s', r | s, a) (r + \gamma v_{\pi'}(s'))
 \end{equation}
-Since, $v_{\pi'}(s) \geq v_{\pi}(s)$
+Since, $v_{\pi'}(s') \geq v_{\pi}(s')$
 \begin{equation}
-    v_{\pi'}(s) \geq \sum\limits_{\substack{a \in A(s)\\r, s' \in S}} \pi'(a | s) p(s', r | s, a) (r + \gamma v_{\pi}(s))
+    v_{\pi'}(s) \geq \sum\limits_{\substack{a \in A(s)\\r, s' \in S}} \pi'(a | s) p(s', r | s, a) (r + \gamma v_{\pi}(s'))
 \end{equation}
-The RHS here can be rewritten as $\sum\limits_{a \in A(s)} \pi'(a | s) \sum\limits_{r, s' \in S} p(s', r | s, a) (r + \gamma v_{\pi}(s))$ which is nothing but $\sum\limits_{a \in A(s)} \pi'(a | s) q_{\pi}(s, a)$.
+The RHS here can be rewritten as $\sum\limits_{a \in A(s)} \pi'(a | s) \sum\limits_{r, s' \in S} p(s', r | s, a) (r + \gamma v_{\pi}(s'))$ which is nothing but $\sum\limits_{a \in A(s)} \pi'(a | s) q_{\pi}(s, a)$.
 
 Therefore,
 \begin{equation}
@@ -684,9 +684,9 @@ The key idea in value iteration is that we don't need to find the exact value fu
 
 In value iteration, we do exactly one full backup, and move on to the policy improvement step immediately afterwards. The update rules then become:
 \begin{equation}
-    v_{k + 1}(s) = \max\limits_{a \in A(s)} \sum\limits_{r, s' \in S} p(s', r | s, a) (r + \gamma v_{k}(s))
+    v_{k + 1}(s) = \max\limits_{a \in A(s)} \sum\limits_{r, s' \in S} p(s', r | s, a) (r + \gamma v_{k}(s'))
 \end{equation}
-where, at every iteration, $\pi_{k}(s) = \arg\max\limits_{a \in A(s)} \sum\limits_{r, s' \in S} p(s', r | s, a) (r + \gamma v_{k}(s))$.
+where, at every iteration, $\pi_{k}(s) = \arg\max\limits_{a \in A(s)} \sum\limits_{r, s' \in S} p(s', r | s, a) (r + \gamma v_{k}(s'))$.
 
 Note, that equation (4.16) is nothing but the Bellman Optimality Condition converted into an update rule, and therefore the optimal value function will be a fixed point of this update rule.
 \section{Asynchronous Dynamic Programming}
