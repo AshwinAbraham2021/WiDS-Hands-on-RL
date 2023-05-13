@@ -39,7 +39,7 @@
 \usepackage{multirow}
 
 
-\title{\Huge \textbf{Winter of Data Science Report} \\ on \\ \textbf{Reinforcement Learning}}
+\title{\Huge \textbf{Reinforcement Learning}}
 \author{\Large Ashwin Abraham}
 \date{\Large December 18th, 2022}
 
@@ -71,6 +71,11 @@ The agent is not told which actions are the best, but must learn this itself by 
 In general, all of these may be stochastic and may change with time.
 
 We have not defined any of these formally yet, and we shall revisit all these terms and define them when we learn about \textbf{Markov Decision Processes}, which are used to formally frame the Reinforcement Learning Problem.
+
+\section{The Reward Hypothesis}
+The Reward Hypothesis states that every goal can be framed in terms of choosing actions in order to maximize a reward signal. For example, while playing a game, we make choices in order to maximize our score (which will be our reward signal).
+
+The near-universal applicability of Reinforcement Learning is based on the validity of the Reward Hypothesis.
 
 \section{Exploration vs Exploitation}
 The conflict between \textbf{exploration} and \textbf{exploitation} is one of the most challenging aspects of Reinforcement Learning.
@@ -271,28 +276,28 @@ choose actions that haven't been chosen earlier, encouraging exploration. We can
     \caption{Here we have prepared a testbed of 100 identical 10 armed bandits, and we test multiple strategies on this testbed. \texttt{\% Optimal Action} refers to the percentage of bandits in the testbed choosing the action with the highest value. One can see that the optimistic greedy policy sometimes outperforms realistic versions of even non-greedy algorithms.}
 \end{figure}
 
-\subsection{\texorpdfstring{The $\epsilon$-Greedy Policy}{}}
+\subsection{\texorpdfstring{The $\varepsilon$-greedy Policy}{}}
 Here, our policy becomes stochastic.
 \begin{eqnarray}
-    A_{t} = \arg\max_{a \in A} Q_{t}(a), \text{with probability $1 - \epsilon$}\\
-    A_{t} = \text{random choice from $A$}, \text{ with probability $\epsilon$}
+    A_{t} = \arg\max_{a \in A} Q_{t}(a), \text{with probability $1 - \varepsilon$}\\
+    A_{t} = \text{random choice from $A$}, \text{ with probability $\varepsilon$}
 \end{eqnarray}
 Note that even in the second case, it is possible for $\arg\max_{a \in A} Q_{t}(a)$ to be chosen. All ties in the first case are broken randomly.
 
 The advantage of this policy is that, as $t \rightarrow \infty$, $N_{t}(a) \rightarrow \infty, \forall a \in A$. If we use the sample average to estimate 
 $Q_{t}$ (and if the bandit is stationary), this means that $\forall a \in A, Q_{t}(a) \rightarrow q(a)$.
 
-If $\epsilon = 0$, then this strategy reduces to the greedy policy. For small values of $\epsilon$, the agent learns slowly, and for larger values it learns more quickly.
-However, asymptotically, the agent performs better with smaller values of $\epsilon$ than with larger values.
+If $\varepsilon = 0$, then this strategy reduces to the greedy policy. For small values of $\varepsilon$, the agent learns slowly, and for larger values it learns more quickly.
+However, asymptotically, the agent performs better with smaller values of $\varepsilon$ than with larger values.
 
 \begin{figure}[H]
     \centering
     \includegraphics[width=0.9\textwidth]{images/Epsilon-greedy.png}
-    \caption{We again use the same testbed described earlier and compare greedy and $\epsilon$-greedy policies. \texttt{Average Reward} here refers to the average reward each agent obtained at a particular timestep. As we can see, the $\epsilon$-greedy policies perform better than the greedy policies. Among the $\epsilon$-greedy policies, the one with the lower $\epsilon$ learns slower, but asymptotically performs better than the one with higher $\epsilon$.}
+    \caption{We again use the same testbed described earlier and compare greedy and $\varepsilon$-greedy policies. \texttt{Average Reward} here refers to the average reward each agent obtained at a particular timestep. As we can see, the $\varepsilon$-greedy policies perform better than the greedy policies. Among the $\varepsilon$-greedy policies, the one with the lower $\varepsilon$ learns slower, but asymptotically performs better than the one with higher $\varepsilon$.}
 \end{figure}
 
 \subsection{Upper Confidence Bound Action Selection}
-One problem with $\epsilon$ greedy policies are that, during exploration, it gives no preference to actions with higher values, or to relatively underexplored actions over low value, well explored actions.
+One problem with $\varepsilon$ greedy policies are that, during exploration, it gives no preference to actions with higher values, or to relatively underexplored actions over low value, well explored actions.
 The UCBA selection method chooses the action with the largest upper confidence bound, where the upper confidence bound of an action is the largest value of $q(a)$ that we are reasonably confident is possible for the action $a$.
 For actions tried many times, this upper bound will be close to the estimated $Q_{t}$, whereas for untried actions it'll be much larger than it. Formally, speaking the policy is:
 \begin{equation}
@@ -307,7 +312,7 @@ to non-stationary bandits.
 \begin{figure}[h!]
     \centering
     \includegraphics[width=0.7\textwidth]{images/UCBA.png}
-    \caption{We use the same testbed again to compare the UCBA and $\epsilon$-greedy policies. As you can see, the UCBA policy is better.}
+    \caption{We use the same testbed again to compare the UCBA and $\varepsilon$-greedy policies. As you can see, the UCBA policy is better.}
 \end{figure}
 
 \subsection{Gradient Bandits}
@@ -368,7 +373,7 @@ Considering the policies with their parameters optimized, it seems that for stat
     \caption{We compare all the different policies on our testbed over different values for their parameters. $\texttt{Average Reward}$ here refers to the average reward obtained over the first $1000$ timesteps. The characteristic inverted U shape of these curves shows that an optimal value exists for the parameters.}
 \end{figure}
 
-However, among these policies, only the $\epsilon$-greedy policies and the gradient bandit policies can be readily generalized to more complex RL problems.
+However, among these policies, only the $\varepsilon$-greedy policies and the gradient bandit policies can be readily generalized to more complex RL problems.
 
 \section{Contextual Bandits}
 One of the defining properties of bandits were that they possess only one state. The situation is therefore \textbf{non-associative} (ie we don't deal with multiple states), and therefore we could easily design 
@@ -426,7 +431,7 @@ For notational convenience, we will use $p(r, s' | s, a)$ to denote this distrib
     p(s', r | s, a) = \mathop{\mathbb{P}}(S_{t + 1} = s', R_{t + 1} = r | S_{t} = s, A_{t} = a)
 \end{equation}
 
-We say a task is a \textit{complete-knowledge} task if the distribution $p(s', r | s, a)$ is known before hand, and an \textit{incomplete-knowledge} task if it is unknown, and must be learnt by the agent.
+We say a task is a \textit{complete-knowledge} task if the distribution $p(s', r | s, a)$ is known before hand, and an \textit{incomplete-knowledge} task if it is unknown, and must be learnt by the agent.\footnote{These are also known as Fully Observable and Partially Observable Markov Decision Processes respectively.}
 
 $p(s', r | s, a)$ along with the set of states $S$, set of actions for each state $A(s)$ (for $s \in S$) completely specifies the task at hand. Tasks that can be formulated this way in terms of 
 states and actions are known as \textbf{Markov Decision Processes}. Along with the agents policy $\pi(s | a)$, the entire interaction between the Agent and the Environment is specified.
@@ -495,61 +500,105 @@ $q_{\pi}(s, a)$ for all $s, a$ up assuming we know the dynamics of the MDP ($p(s
 based on some heuristic. For example, in episodic MDPs, the terminal states have $0$ value. From these states, we can work from the bottom up to find all the values.
 
 \section{Bellman Optimality Equations}
-We say a policy $\pi_{1}$ is better than a policy $\pi_{2}$ for an MDP if $\forall s \in S, v_{\pi_{1}}(s) \geq v_{\pi_{2}}(s)$ and $\forall s \in S, a \in A(S), q_{\pi_{1}}(s, a) \geq q_{\pi_{2}}(s, a)$ (note that due to equations (3.10) and (3.14) these two conditions are equivalent)\footnote{There may be policies which are not comparable, ie Now, if $v_{\pi_{1}}(s) \geq v_{\pi_{2}}(s)$ for some $s$ and $v_{\pi_{1}}(s) < v_{\pi_{2}}(s)$ for other $s$. We have defined in this way a \textit{partial order} on policies.}.
-It can be shown that there will always exist an optimal policy $\pi^{*}$ that satifies $v_{\pi^{*}}(s) \geq v_{\pi}(s)$ and $q_{\pi^{*}}(s, a) \geq q_{\pi}(s, a)$, $\forall s \in S, \forall \text{ policies } \pi$. Although there may be many optimal policies, it is easy to show that $v_{\pi^{*}}$ and $q_{\pi^{*}}$ are unique\footnote{If $v_{1}$ and $v_{2}$ are the state value functions for two optimal policies, then $\forall s \in S$, $v_{1}(s) \geq v_{2}(s)$ and $v_{2}(s) \geq v_{1}(s)$.}. To show this uniqueness, we write $v_{*} = v_{\pi^{*}}$ and $q_{*} = q_{\pi^{*}}$.
-Clearly, $\forall s \in S, a \in A(S)$ $q_{*}(s, a) = \max_{\pi}(q_{\pi}(s, a))$ and $v_{*}(s) = \max_{\pi}(v_{\pi}(s))$.
+We define a partial order on policies with $\pi_{1} \geq \pi_{2}$ iff $\forall s \in S, v_{\pi_{1}}(s) \geq v_{\pi_{2}}(s)$ \footnote{Due to equation (3.14) this implies that $\forall s \in S, a \in A(s), q_{\pi_{1}}(s, a) \geq q_{\pi_{2}}(s, a)$.}.
+It can be shown\footnote{Via the Contraction Mapping Theorem} that there will always exist an optimal policy $\pi^{*}$ that satifies $v_{\pi^{*}}(s) \geq v_{\pi}(s)$, $\forall s \in S, \forall \text{ policies } \pi$. Although there may be many optimal policies, it is easy to show that $v_{\pi^{*}}$ is unique\footnote{If $v_{1}$ and $v_{2}$ are the state value functions for two optimal policies, then $\forall s \in S$, $v_{1}(s) \geq v_{2}(s)$ and $v_{2}(s) \geq v_{1}(s)$.}. We write $v_{*} = v_{\pi^{*}}$ (and $q_{*} = q_{\pi^{*}}$).
+Clearly, $v_{*}(s) = \max\limits_{\pi}(v_{\pi}(s))$.
 
-We can show that the optimal value functions must satisfy the following equations, which are known as the \textbf{Bellman Optimality Equations}.
+We can show that the optimal value function must\footnote{Therefore, this is a necessary condition. Using the Contraction Mapping Theorem, one can show that the Bellman Optimality Equations have a unique solution and therefore this condition is sufficient as well.} satisfy the following equation, which is known as the \textbf{Bellman Optimality Equation}.
+% \begin{equation}
+%     q_{*}(s, a) = \sum\limits_{r, s' \in S} p(s', r | s, a)(r + \gamma \max_{a \in A(s')} q(s', a))
+% \end{equation}
+% and
 \begin{equation}
-    q_{*}(s, a) = \sum\limits_{r, s' \in S} p(s', r | s, a)(r + \gamma \max_{a \in A(s')} q(s', a))
+    v_{*}(s) = \max_{a \in A(s)} q_{*}(s, a)
+\end{equation}
+
+This can be justified intuitively by stating that in the optimal policy we will always choose an action that leads to maximum return.
+
+Combining the Bellman Optimality Equation with (3.14) we get
+\begin{equation}
+    q_{*}(s, a) = \sum_{r, s' \in S} p(s', r | s, a)(r + \gamma \max_{a' \in A(s')} q_{*}(s', a'))
 \end{equation}
 and
 \begin{equation}
-    v_{*}(s) = \max_{a \in A(s)} q_{*}(s, a) = \max_{a \in A(s)} \sum\limits_{r, s' \in S} p(s', r | s, a)(r + \gamma v_{*}(s'))
+    v_{*}(s) =  \max_{a \in A(s)} \sum_{r, s' \in S} p(s', r | s, a)(r + \gamma v_{*}(s'))
 \end{equation}
+Therefore, a policy $\pi^{*}$ satisfying $\pi^{*}(a | s) \neq 0$ only if $a \in \arg\max\limits_{a \in A(s)} q_{*}(s, a)$ is an optimal policy (a policy that is greedy with respect to the optimal action value function is optimal). Now, with this policy, we get
 
-We can intuitively justify this by stating that in the optimal policy we will always choose an action that leads to maximum return, ie, 
+A formal proof of (3.19) would go as follows:
+
+For every policy $\pi$,
 \begin{equation}
-    v_{*}(s) = \max\limits_{a \in A(s)} q_{*}(s, a)
+    v_{\pi}(s) = \sum_{a \in A(s)} \pi(a | s) q_{\pi}(s, a) \leq \max_{a \in A(s)} q_{\pi}(s, a)
 \end{equation}
-Using this along with equation (3.14), we get the Bellman Optimality Equations, and we can also show that and policy $\pi$ satisfying $\pi(a | s) \neq 0$ only if $a \in \arg\max\limits_{a \in A(s)} q_{\pi}(s, a)$ is an optimal policy (the optimal policy is greedy with respect to the action value function).
-
-A formal proof\footnote{This part is not essential reading for the project} would go as follows:
-Assume we have some function $v(s)$ that satisfies
+This equation holds for $v_{*}$ as well, therefore 
 \begin{equation}
-    v(s) = \max_{a \in A(s)} \sum\limits_{r, s' \in S} p(s', r | s, a) (r + \gamma v(s'))
+    v_{*}(s) \leq \max_{a \in A(s)} q_{*}(s, a)
 \end{equation}
-Now, clearly (by equation (3.16)) this corresponds to an action-value function for a policy $\pi$ such that $\pi(a | s) \neq 0$ only if $a \in \arg\max\limits_{a \in A(s)} \sum\limits_{r, s' \in S} p(s', r | s, a) (r + \gamma v(s'))$. 
-By equation (3.14), the corresponding action value function would be $q(s, a) = \sum\limits_{r, s' \in S} p(s', r | s, a) (r + \gamma v(s'))$, ie $\pi(a | s) \neq 0$ only if $a \in \arg\max\limits_{a \in A(s)} q(s, a)$.
+Let the optimal policy in this case be $\pi^{*}$.
 
-Now, we shall prove that $v(s) \geq v_{\pi'}(s), \forall s \in S$ for all policies $\pi'$. This  makes $\pi$ an optimal policy\footnote{This means that any deterministic policy that is greedy with respect to it's own action value function is an optimal policy, as it is trivial to show that any such policy must satify the Bellman Optimality Equations.}, which makes $v$ \textbf{the} optimal state value function.
-Therefore, due to uniqueness, the optimal state value function must satisfy the equation (3.20), which is nothing but the Bellman Optimality Condition for the state value function, from which we can derive the Bellman Optimality Condition for the action value function (using equation (3.14) along with the fact that $v(s) = \max\limits_{a \in A(s)} q(s, a)$).
+Now, assume there is some state $s \in S$ such that $v_{*}(s) < \max\limits_{a \in A(s)} q_{*}(s, a)$. Consider the policy $\pi$ that has $\pi(a | s') = \pi^{*}(a | s'), \forall s' \neq s$ and $\pi(a | s) \neq 0$ only if $a \in \arg\max\limits_{a' \in A(s)} q_{*}(s, a)$.
 
-To prove that $v(s) \geq v_{\pi'}(s), \forall s \in S$, for all policies $\pi'$, we proceed by induction.
+We have $\sum\limits_{a \in A(s)} \pi(a | s) q_{*}(s, a) = \max_{a \in A(s)} q_{*}(s, a) > v_{*}(s)$. By the \hyperref[subsec:PIT]{Policy Improvement Theorem}, this means that $v_{\pi}(s) > v_{\pi^{*}}(s)$, which is a contradiction.
 
-For the terminal states $v(s) = v_{\pi'}(s) = 0$, therefore, $v(s) \geq v_{\pi'}(s)$. Now, assume for some state $s$, every $s'$ with $p(s', r | s, a) > 0$ for some $r$ and some $a$ has $v(s') \geq v_{\pi'}(s')$.
-Now,
+Therefore, equality holds for all $s \in S$.
+% Assume we have some function $v(s)$ that satisfies\footnote{It can be shown that the Bellman Optimality Equations have a unique solution.}
+% \begin{equation}
+%     v(s) = \max_{a \in A(s)} \sum\limits_{r, s' \in S} p(s', r | s, a) (r + \gamma v(s'))
+% \end{equation}
+% Now, clearly (by equation (3.16)) this corresponds to an action-value function for a policy $\pi$ such that $\pi(a | s) \neq 0$ only if $a \in \arg\max\limits_{a \in A(s)} \sum\limits_{r, s' \in S} p(s', r | s, a) (r + \gamma v(s'))$. 
+% By equation (3.14), the corresponding action value function would be $q(s, a) = \sum\limits_{r, s' \in S} p(s', r | s, a) (r + \gamma v(s'))$, ie $\pi(a | s) \neq 0$ only if $a \in \arg\max\limits_{a \in A(s)} q(s, a)$.
+
+% Now, we shall prove that $v(s) \geq v_{\pi'}(s), \forall s \in S$ for all policies $\pi'$. This  makes $\pi$ an optimal policy\footnote{This means that any deterministic policy that is greedy with respect to it's own action value function is an optimal policy, as it is trivial to show that any such policy must satify the Bellman Optimality Equations.}, which makes $v$ \textbf{the} optimal state value function.
+% Therefore, due to uniqueness, the optimal state value function must satisfy the equation (3.20), which is nothing but the Bellman Optimality Condition for the state value function, from which we can derive the Bellman Optimality Condition for the action value function (using equation (3.14) along with the fact that $v(s) = \max\limits_{a \in A(s)} q(s, a)$).
+
+% To prove that $v(s) \geq v_{\pi'}(s), \forall s \in S$, for all policies $\pi'$, we proceed by induction.
+
+% For the terminal states $v(s) = v_{\pi'}(s) = 0$, therefore, $v(s) \geq v_{\pi'}(s)$. Now, assume for some state $s$, every $s'$ with $p(s', r | s, a) > 0$ for some $r$ and some $a$ has $v(s') \geq v_{\pi'}(s')$.
+% Now,
+% \begin{equation}
+%     v(s) = \max_{a \in A(s)} \sum\limits_{r, s' \in S} p(s', r | s, a) (r + \gamma v(s')) \geq \max_{a \in A(s)} \sum\limits_{r, s' \in S} p(s', r | s, a) (r + \gamma v_{\pi'}(s'))
+% \end{equation}
+% Therefore,
+% \begin{equation}
+%     v(s) \geq \sum\limits_{\substack{a \in A(s)\\r, s' \in S}} \pi'(a | s) p(s', r | s, a) (r + \gamma v_{\pi'}(s')) = v_{\pi'}(s)
+% \end{equation}
+% Hence,
+% \begin{equation}
+%     v(s) \geq v_{\pi'}(s)
+% \end{equation}
+
+% Therefore, by the inductive principle $\forall s \in S, v(s) \geq v_{\pi'}(s)$. Using this, we can prove the Bellman Optimality Conditions via the method described above.
+
+% Note, that we here we have proved that the Bellman Optimality Equations impose a sufficient condition on the value functions for them to be optimal. The uniqueness of the value functions leads to this being a necessary condition as well.
+
+\section{Linear Programming}
+In principle, if the dynamics of the MDP ($p(s', r | s, a)$) are known (the MDP is complete knowledge), then we can convert the Bellman Optimality Equations into a Linear Programming Problem, which can be solved explicitly, in polynomial time.
+
+The equations we have to solve are:
 \begin{equation}
-    v(s) = \max_{a \in A(s)} \sum\limits_{r, s' \in S} p(s', r | s, a) (r + \gamma v(s')) \geq \max_{a \in A(s)} \sum\limits_{r, s' \in S} p(s', r | s, a) (r + \gamma v_{\pi'}(s'))
+    v_{*}(s) = \max\limits_{a \in A(s)} \sum\limits_{r, s' \in S} p(s', r | s, a) (r + \gamma v_{*}(s')), \forall s \in S
 \end{equation}
-Therefore,
+
+We can linearize this system of equations by converting them into the Bellman Optimality Constraints:
 \begin{equation}
-    v(s) \geq \sum\limits_{\substack{a \in A(s)\\r, s' \in S}} \pi'(a | s) p(s', r | s, a) (r + \gamma v_{\pi'}(s')) = v_{\pi'}(s)
+    v_{*}(s) - \sum\limits_{r, s' \in S} p(s', r | s, a) (r + \gamma v_{*}(s')) \geq 0, \forall s \in S, a \in A(s)
 \end{equation}
-Hence,
+
+Given these constraints, we then minimize the quantity:
 \begin{equation}
-    v(s) \geq v_{\pi'}(s)
+    \sum\limits_{s \in S} v_{*}(s)
 \end{equation}
 
-Therefore, by the inductive principle $\forall s \in S, v(s) \geq v_{\pi'}(s)$. Using this, we can prove the Bellman Optimality Conditions via the method described above.
+It can be shown that this linear programming problem is equivalent to the original problem\footnote{This is because the sum of the coefficients of $v_{*}(s)$ in any of the equations is positive, and the equations corresponding to a given $s \in S$ will have the coefficient of $v_{*}(s)$ positive and other coefficients negative.}. 
 
-Note, that we here we have proved that the Bellman Optimality Equations impose a sufficient condition on the value functions for them to be optimal. The uniqueness of the value functions leads to this being a necessary condition as well.
+% If we denote the vector $(v_{*}(s_{1}), v_{*}(s_{2}) \dots)^{T}$ by $\mathbf{v_{*}}$, then the sum we minimize can be written as $\mathbf{c}^{T} \mathbf{v_{*}}$, where $\mathbf{c} = (1, 1 \dots)^{T}$.
+% The constraints can be written as $\mathbf{a_{sa}}^{T} \mathbf{v_{*}} \geq b_{sa}$. Note that, $\forall s \in S, a \in A(s)$, $\mathbf{a_{sa}}^{T}\mathbf{c} = 1 - \sum\limits_{r, s' \in S} \gamma p(s', r | s, a) = 1 - \gamma \geq 0$. This means the quantity $\mathbf{c}^{T} \mathbf{v_{*}}$ cannot be made arbitrarily small without violating the constraints, ie the minimum for $\mathbf{c}^{T} \mathbf{v_{*}}$ given these constraints exists.
 
-\section{Solving the Bellman Optimality Conditions}
-In principle, if the dynamics of the MDP ($p(s', r | s, a)$) are known (the MDP is complete knowledge), then we can solve the Bellman Optimality Equations from the bottom up, and use these to find the optimal policy, ie, we can solve the Reinforcement Learning Problem.
-
+% It can be shown that since the Linear Programming problem has $\left|S\right|$ variables, at the minima, $\left|S\right|$ of the inequalities will become equalities. 
+\section{Difficulties in Linear Programming}
 The two principal difficulties with this are that, often $p(s', r | s, a)$ are not known beforehand and must be learnt, and that in most situations the number of states is too large for the previously described method to be computationally feasible. Therefore, we develop various methods and 
-hueristics in order to approximately solve these equations.
+heuristics in order to approximately solve these equations.
 
 \chapter{Dynamic Programming}
 \section{Introduction}
@@ -584,7 +633,7 @@ It is also possible to iteratively find $q_{\pi}$ instead of $v_{\pi}$ using it'
 Here also $\lim\limits_{k \rightarrow \infty} q_{k} = q_{\pi}$, and we can therefore find $v_{\pi}$ using $v_{\pi}(s) = \sum\limits_{a \in A(s)} \pi(a | s) q_{\pi}(s, a)$. This algorithm is less efficient than the previously described one, as during each update we must iterate over the space of states and the space of actions ($S \times A$), rather than $S$ alone.
 
 Each update to the value of a state $s$ is known as a backup to $s$. We can do our backups in-place, ie, once we calculate the new value of $v(s)$ via the update rule, we immediately use this new value to update $v(s')$ for other states $s'$. This generally leads to faster convergence as we use the updated information as soon as it becomes available.
-Since, in this algorithm, to go from $v_{k}$ to $v_{k + 1}$, we update $v(s)$ for every state $s$, this update is known as a full backup. Full backups run in $O(\left|S\right|^{2})$ and therefore can be extremely computationally expensive. \textit{Asynchronous Dynamic Programming} and \textit{Generalized Policy Iteration} techniques (discussed later) provide ways for us to manage this cost.
+Since, in this algorithm, to go from $v_{k}$ to $v_{k + 1}$, we update $v(s)$ for every state $s$, this update is known as a full backup. Full backups run in $O(\left|S\right|^{2})$ and therefore can be extremely computationally expensive. \textit{Asynchronous Dynamic Programming} and \textit{Value Iteration} techniques (discussed later) provide ways for us to manage this cost.
 
 
 \section{Policy Improvement}
@@ -596,6 +645,7 @@ with ties broken arbitrarily\footnote{Note that $\pi'$ here is a deterministic p
 
 This new policy will be better than (or at least as good as) the previous policy. This can be formalized via the \textit{Policy Improvement Theorem}.
 \subsection{The Policy Improvement Theorem}
+\label{subsec:PIT}
 The statement of the theorem is as follows:
 
 If $\pi$ and $\pi'$ are two policies such that
@@ -606,31 +656,42 @@ then
 \begin{equation}
     v_{\pi'}(s) \geq v_{\pi}(s), \forall s \in S
 \end{equation}
-ie, $\pi'$ is at least as good a policy as $\pi$. 
+ie, $\pi'$ is at least as good a policy as $\pi$. Moreover, if for any $s \in S$ the first ineqaulity is strict, then the second inequality is strict as well for the same $s$.
 
 The proof of this theorem is as follows:
 
 Firstly, note that $\mathop{\mathbb{E}}_{a \sim \pi'}\left[q_{\pi}(s, a)\right] = \sum\limits_{a \in A(s)} \pi'(a | s) q_{\pi}(s, a)$. Therefore, our inequality becomes
 \begin{equation}
-    \sum\limits_{a \in A(s)} \pi'(a | s) q_{\pi}(s, a) \geq v_{\pi}(s), \forall s \in S
+    v_{\pi}(s) \leq \sum\limits_{a \in A(s)} \pi'(a | s) q_{\pi}(s, a), \forall s \in S
 \end{equation}
 
-Our proof is by induction. Note that for all terminal states $s$, $v_{\pi'}(s) = v_{\pi}(s) = 0$. For some state $s$, assume that every $s'$ with $p(s', r | s, a) > 0$ for some $r, a$ has $v_{\pi'}(s') \geq v_{\pi}(s')$.
-Now,
+However, we have $q_{\pi}(s, a) = \sum\limits_{r, s' \in S} p(s', r | s, a)(r + \gamma v_{\pi}(s'))$ and therefore, 
 \begin{equation}
-    v_{\pi'}(s) = \sum\limits_{\substack{a \in A(s)\\r, s' \in S}} \pi'(a | s) p(s', r | s, a) (r + \gamma v_{\pi'}(s'))
+    v_{\pi}(s) \leq \sum\limits_{\substack{a \in A(s)\\r, s' \in S}} \pi'(a | s) p(s', r | s, a)(r + \gamma v_{\pi}(s')), \forall s \in S
 \end{equation}
-Since, $v_{\pi'}(s') \geq v_{\pi}(s')$
-\begin{equation}
-    v_{\pi'}(s) \geq \sum\limits_{\substack{a \in A(s)\\r, s' \in S}} \pi'(a | s) p(s', r | s, a) (r + \gamma v_{\pi}(s'))
-\end{equation}
-The RHS here can be rewritten as $\sum\limits_{a \in A(s)} \pi'(a | s) \sum\limits_{r, s' \in S} p(s', r | s, a) (r + \gamma v_{\pi}(s'))$ which is nothing but $\sum\limits_{a \in A(s)} \pi'(a | s) q_{\pi}(s, a)$.
 
-Therefore,
+We can use equation (4.8) again on $v_{\pi}(s')$, and we can do this an indefinite number of times. Doing this gives us
 \begin{equation}
-    v_{\pi'}(s) \geq \sum\limits_{a \in A(s)} \pi'(a | s) q_{\pi}(s, a) \geq v_{\pi}(s)
+    v_{\pi}(s) \leq \sum\limits_{\substack{a \in A(s)\\r, s' \in S}} \pi'(a | s) p(s', r | s, a)(r + \gamma(\cdots)) = v_{\pi'}(s), \forall s \in S
 \end{equation}
-Hence, $v_{\pi'}(s) \geq v_{\pi}(s)$. By induction, this means that $v_{\pi'}(s) \geq v_{\pi}(s), \forall s \in S$.
+which is what was required. Clearly, if the initial inequality is strict for some $s \in S$ then for that $s$, the final inequality will be strict.
+
+% Our proof is by induction. Note that for all terminal states $s$, $v_{\pi'}(s) = v_{\pi}(s) = 0$. For some state $s$, assume that every $s'$ with $p(s', r | s, a) > 0$ for some $r, a$ has $v_{\pi'}(s') \geq v_{\pi}(s')$.
+% Now,
+% \begin{equation}
+%     v_{\pi'}(s) = \sum\limits_{\substack{a \in A(s)\\r, s' \in S}} \pi'(a | s) p(s', r | s, a) (r + \gamma v_{\pi'}(s'))
+% \end{equation}
+% Since, $v_{\pi'}(s') \geq v_{\pi}(s')$
+% \begin{equation}
+%     v_{\pi'}(s) \geq \sum\limits_{\substack{a \in A(s)\\r, s' \in S}} \pi'(a | s) p(s', r | s, a) (r + \gamma v_{\pi}(s'))
+% \end{equation}
+% The RHS here can be rewritten as $\sum\limits_{a \in A(s)} \pi'(a | s) \sum\limits_{r, s' \in S} p(s', r | s, a) (r + \gamma v_{\pi}(s'))$ which is nothing but $\sum\limits_{a \in A(s)} \pi'(a | s) q_{\pi}(s, a)$.
+
+% Therefore,
+% \begin{equation}
+%     v_{\pi'}(s) \geq \sum\limits_{a \in A(s)} \pi'(a | s) q_{\pi}(s, a) \geq v_{\pi}(s)
+% \end{equation}
+% Hence, $v_{\pi'}(s) \geq v_{\pi}(s)$. By induction, this means that $v_{\pi'}(s) \geq v_{\pi}(s), \forall s \in S$.
 
 \subsection{Improving our Policy}
 If we change our policy in the manner described earlier, ie 
@@ -653,7 +714,7 @@ If $\pi'$ is exactly as good as $\pi$, ie
 \end{equation}
 then the inequality in equation (4.12) must be an equality. Therefore, 
 \begin{equation}
-    v_{\pi}(s) = \max\limits_{a \in A(s)} q_{\pi}(s, a) = \max\limits_{a \in A(s)} \sum\limits_{r, s' \in S} p(s', r | s, a)(r + \gamma v_{\pi}(s'))
+    v_{\pi}(s) = \max\limits_{a \in A(s)} q_{\pi}(s, a) = \max\limits_{a \in A(s)} \sum\limits_{r, s' \in S} p(s', r | s, a)(r + \gamma v_{\pi}(s')),
 \end{equation}
 ie, $v_{\pi}$ (and therefore $v_{\pi'}$) both satisfy the Bellman Optimality Equations, and therefore both $\pi$ and $\pi'$ are optimal policies.
 
@@ -694,144 +755,125 @@ Sometimes, for large state spaces, the cost of doing even a single full backup e
 Therefore, in asynchronous dynamic programming, we update only a subset of the states\footnote{An analogy may be drawn with stochastic gradient descent here.}, ideally the ones that are most relevant. 
 
 Asynchronous Dynamic Programming is often done by training the agent while it is experiencing the MDP. We backup only the states that the agent has encountered so far. This causes learning to be focused on the most relevant states.
+
+\section{Prioritized Sweeping}
+Here, during value iteration, we first back up the states with the largest \textbf{Bellman Error}: $\left|\max\limits_{a \in A(s)}\sum\limits_{r, s' \in S} p(s', r | s, a)(r + \gamma v(s')) - v(s)\right|$. This can be done efficiently via data structures such as priority queues.
+
 \section{Generalized Policy Iteration}
 Starting from Policy Iteration, our strategy to find the optimal policy has been to both update the value function for the states (policy evaluation) and to update the policy to make it greedy with respect to the current value function (policy improvement). Such algorithms are known as 
 Generalized Policy Iteration algorithms. To make these algorithms less computationally intensive we have spread the policy evaluation around and intermixed it more with policy improvement. This allows us to not have to wait for long policy evaluations in order to improve our policy.
 
 All Generalized Policy Iteration algorithms will eventually converge to an optimal policy, as, by the Bellman Optimality Equations, these policies are greedy with respect to their own value functions.
 
-% \section{Itemization in Unordered Lists}
-% The same thing, but as an unordered list.
-% \begin{itemize}
-%     \item Comparison based sorting algorithms\\
-%           These algorithms will always have $\Omega(n\log n)$ comparisons.
-%           \begin{itemize}
-%               \item Sorting algorithms that are $O(n^2)$ on average
-%                     \begin{itemize}
-%                         \item Bubble Sort
-%                         \item Insertion Sort
-%                         \item Selection Sort
-%                         \item Comb Sort
-%                         \item Exchange Sort
-%                         \item Shell Sort
-%                     \end{itemize}
-%               \item Sorting algorithms that are $O(n\log n)$ on average
-%                     \begin{itemize}
-%                         \item Merge Sort
-%                         \item Heap Sort
-%                         \item Quick Sort
-%                     \end{itemize}
-%           \end{itemize}
-%     \item Distribution based sorting algorithms\\
-%           These algorithms can be more efficient than $n\log n$ and are all $\Omega(n)$.\\
-%           However they make some assumptions about the distribution of the elements of the array.
-%           \begin{itemize}
-%               \item Counting Sort\\
-%                     Here it is assumed that the elements of the array belong to a set $S$ of possibilities.\\
-%                     It's time complexity is then $O(n + |S|)$.
-%               \item Bucket Sort\\
-%                     Here we divide the array into $k$ buckets, and sort the buckets, and then merge them.\\
-%                     It's time complexity is $O(n + \frac{n^{2}}{k} + k)$.
-%               \item Radix Sort\\
-%                     Here we assume that the elements are to be sorted lexicographically.\\
-%                     It's time complexity is $O(wn)$ where $w$ is the length of each element.
-%           \end{itemize}
-% \end{itemize}
 
+\chapter{Monte Carlo Methods}
 
-% % \chapter{Images with Captions}
-% % Have a look at these images with captions related to sorting.
-% % \begin{figure}[h!]
-% %     \centering
-% %     % \includegraphics[width=0.6\textwidth]{images/selection-sort.png}
-% %     \caption{Selection Sort}
-% % \end{figure}
-% % \begin{figure}[h!]
-% %     \centering
-% %     % \includegraphics[width=0.8\textwidth]{images/complexities.png}
-% %     \caption{Time Complexities of some Sorting Algorithms}
-% % \end{figure}
+So far we've been assuming that we know the dynamics of the MDP completely, ie $p(s', r | s, a)$ is known to us. However, this usually isn't the case. Monte Carlo Methods are a collection of techniques to learn the dynamics of the MDP from experience - this usually entails learning $q_{\pi}$  for a particular policy $\pi$. Policy Improvement can be done in much the same way, so our new Policy Iteration entails learning the action-value function for a policy and then improving the policy based on this action value function.
 
-% \chapter{A Table with Captions}
+\section{Estimating the State Value Function}
+We can estimate the state value function of an MDP by experience, by replacing the expectation in the definition of the state function with a sample average.
+\begin{equation}
+    v_{\pi}(s) = \mathbb{E}[G_{t} | S_{t} = s]
+\end{equation}
 
-% \begin{table}[h!]
-%     \begin{tabular}{ |p{2.5cm}||p{2.5cm}|p{2.5cm}|p{2.5cm}|p{2.5cm}|  }
-%         \hline
-%         \multicolumn{5}{|c|}{Sorting Algorithms} \\
-%         \hline
-%         \centering Algorithm& \centering Best Case Complexity & \centering Average Case Complexity&\centering Worst Case Complexity& Memory Complexity\\
-%         \hline
-%         \centering Bubblesort & \centering $\Omega(n)$ & \centering $\Theta(n^{2})$ & \centering $O(n^{2})$ & $O(1)$\\
-%         \hline
-%         \centering Insertion Sort & \centering $\Omega(n)$ & \centering $\Theta(n^{2})$ & \centering $O(n^{2})$ & $O(1)$\\
-%         \hline
-%         \centering Selection Sort & \centering $\Omega(n^{2})$ & \centering $\Theta(n^{2})$ & \centering $O(n^{2})$ & $O(1)$\\
-%         \hline
-%         \centering Comb Sort & \centering $\Omega(n\log n)$ & \centering $\Theta(n^{2})$ & \centering $O(n^{2})$ & $O(1)$\\
-%         \hline
-%         \centering Exchange Sort & \centering $\Omega(n^{2})$ & \centering $\Theta(n^{2})$ & \centering $O(n^{2})$ & $O(1)$\\
-%         \hline
-%         \centering Shell Sort & \centering $\Omega(n\log n)$ & \centering $\Theta(n^{\frac{4}{3}})$ & \centering $O(n^{\frac{3}{2}})$ & $O(1)$\\
-%         \hline
-%         \centering Merge Sort & \centering $\Omega(n\log n)$ & \centering $\Theta(n\log n)$ & \centering $O(n\log n)$ & $O(n)$\\
-%         \hline
-%         \centering Heap Sort & \centering $\Omega(n\log n)$ & \centering $\Theta(n\log n)$ & \centering $O(n\log n)$ & $O(1)$\\
-%         \hline
-%         \centering Quick Sort & \centering $\Omega(n\log n)$ & \centering $\Theta(n\log n)$ & \centering $O(n^{2})$ & $O(\log n)$\\
-%         \hline
-%         \centering Counting Sort & \centering $\Omega(n + r)$ & \centering $\Theta(n + r)$ & \centering $O(n + r)$ & $O(n + r)$\\
-%         \hline
-%         \centering Bucket Sort & \centering $\Omega(n + r)$ & \centering $\Theta(n + r)$ & \centering $O(n + r)$ & $O(n + r)$\\
-%         \hline
-%         \centering Radix Sort & \centering $\Omega(n)$ & \centering $\Theta(n\frac{k}{d})$ & \centering $O(n\frac{k}{d})$ & $O(n + 2^{d})$\\
-%         \hline
-%     \end{tabular}
-%     \caption{Some popular sorting algorithms and their complexities}
-% \end{table}
+There are two ways calculating this sample average - \textit{First-Visit Estimation} and \textit{Every-Visit Estimation}. 
 
-% \chapter{Algorithm and Code}
-% Here we will discuss an algorithm to print the first $n$ Fibonacci numbers.
-% This was part of the second inlab of \textbf{CS 251}.
-% The pseudocode of this algorithm is as follows:
-% \begin{algorithmic}[1]
-%     \State $x \gets 0$
-%     \State $y \gets 1$
-%     \For{$k \gets 1$ to $n$}
-%     \State \textbf{print} $x$
-%     \State $temp \gets x$
-%     \State $x \gets y$
-%     \State $y \gets y + temp$
-%     \EndFor
-% \end{algorithmic}
-% The implementation of this algorithm as a \textit{Bash} Script is as follows:
+In First-Visit Estimation, we simulate an episode of the MDP and for each state, calculate the total return after the first time we visit that state. We then estimate $v_{\pi}(s)$ as the average of all the returns obtained in each episode for the state $s$. In Every-Visit Estimation we do the same thing but we keep note of the total return after every time a state is visited, and we average all of these.
 
-% \begin{lstlisting}[language=bash,caption={Calculating the Fibonacci Numbers}]
-% #! /bin/bash
+For terminating MDPs, it can be shown that both of these converge quadratically to the true state-value function. For non-terminating MDPs, we will have to terminate the episode after a certain number of timesteps, which can introduce bias into the sample returns, however the bias can be reduced by increasing the number of timesteps.
 
-% x=0
-% y=1
-% str=""
-% num=$(($1))
-% for ((i=0; i<$num; i++))
-% do
-%     str+="$x "
-%     temp=$(($x))
-%     x=$(($y))
-%     y=$(($y+$temp))
-% done
-% echo $str
-% \end{lstlisting}
+\section{Estimating the Action Value Function}
+State Values are not sufficient to improve the policy if the dynamics of the MDP are not known, and therefore the action value function must be estimated.
 
-% \chapter{Minipage}
-% The following is a boxed minipage.\\
-% \fbox{
-%     \begin{minipage}{6cm}
-%         Lorem ipsum dolor sit amet, consectetur adipiscing elit,
-%         sed do eiusmod tempor incididunt ut labore et dolore magna aliqua.\\ 
-%         Ut enim ad minim veniam, quis nostrud exercitation ullamco laboris nisi ut aliquip ex ea commodo consequat.\\
-%         Duis aute irure dolor in reprehenderit in voluptate velit esse cillum dolore eu fugiat nulla pariatur.\\
-%         Excepteur sint occaecat cupidatat non proident, sunt in culpa qui officia deserunt mollit anim id est laborum.
-%     \end{minipage}
-% }
+Again, we can employ First-Visit Estimation and Every-Visit Estimation, this time calculating returns from when a particular state-action pair was taken.
+\begin{equation}
+    q_{\pi}(s, a) = \mathbb{E}[G_{t} | S_{t} = s, A_{t} = a]
+\end{equation}
 
+\section{Problems with Visit Based Estimation}
+Before getting into the problems, an advantage of visit based estimation methods is that the values estimated for a state (state-action pair) are independent of the values estimated for other states (state-action pairs) - unlike Dynamic Programming algorithms, these algorithms do not \textit{bootstrap}. This means that the time required to estimate the value of a particular state (state-action pair) is independent of the number of states (state-action pairs). This is useful when the number of states (state-action pairs) is large but we are interested only in a subset of these.
+
+The main problem with Visit Based Estimation methods is that they do not explore sufficiently. In Visit Based Estimation of the State Value Function, there is no guarantee that every state will be visited reasonably often, and for Visit Based Estimation of the Action Value Function it is worse - for deterministic policies, only one action will be explored per state. This doesn't give us enough information to perform policy improvement effectively - we may remain stuck in suboptimal policies.
+
+\subsection{Exploring Starts}
+One way to resolve this is to change the initial state (state-action pair) of the MDP in each episode, making sure that each state (state-action pair) has a non-zero probability of being chosen at the beginning. This is known as the \textit{exploring starts} assumption. However, we can't always change the initial state of an MDP, so this may not always be feasible.
+
+The alternative to this is usually to only consider policies that have a non-zero probability of selecting every action in a given state. 
+
+\section{Monte Carlo ES}
+We can alternate policy estimation (with exploring starts) and policy improvement to eventually learn the optimal policy of the MDP - this is Monte Carlo Policy Iteration. Just as we obtained Value Iteration from Policy Iteration earlier, we can obtain an analog of Value Iteration in the Monte Carlo setting - this algorithm is known as Monte Carlo ES (Monte Carlo with exploring starts).
+
+Here, we choose a particular state action pair to start with and then simulate an episode of the MDP, and use the First-Vist or Every-Visit estimation to techniques to update the action value functions of the state-action pairs encountered. We then immediately update the policy and make it greedy with respect to the updated action value function. 
+
+To choose the state action pair that we start with we can use algorithms analogous to the Bandit Algorithms discussed earlier.
+
+Clearly, if this converges to a policy, then the policy will be optimal - as it will be greedy with respect to it's action value function. However, it has not yet been proved that this algorithm always converges.
+
+\section{Removing the Exploring Starts Assumption}
+There are two classes of policies that avoid using the exploring starts assumption - \textit{on policy methods} and \textit{off policy methods}.
+\subsection{\texorpdfstring{On-Policy Methods: $\varepsilon$-soft policies}{}}
+On-policy methods are a class of methods in which we attempt to improve the policy that is used to simulate episodes of the MDP. An example of an on-policy method we have already seen is Monte Carlo ES. To remove the assumption of exploring starts in on-policy methods while maintaining sufficient exploration, during policy improvement, we change the policy such that every action is selected infinitely often. This is generally chosen by making the policy \textit{soft} after policy improvement, ie modify the policy such that every action has a non-zero probability of being chosen. 
+
+For example, the $\varepsilon$-soft version $\pi_{\varepsilon}$ of a policy $\pi$ has a random action chosen with probability $\varepsilon$ and the action is chosen according to $\pi$ with probability $1 - \varepsilon$, ie
+\begin{equation}
+    \pi_{\varepsilon}(a | s) = (1 - \varepsilon)\pi(a | s) + \frac{\varepsilon}{\left|A(s)\right|}
+\end{equation}
+
+In on policy methods that use $\varepsilon$-soft policies, during policy improvement, we make the improved policy $\varepsilon$-soft. This still leads to an improvement over the old policy, as we show below:
+
+We need to show that
+\begin{equation}
+    \sum_{a \in A(s)} \pi'_{\varepsilon}(a | s) q_{\pi}(s, a) \geq v_{\pi}(s), \forall s \in S
+\end{equation}
+so that we can use the Policy Improvement Theorem to show that $\pi'_{\varepsilon} \geq \pi$.
+
+Now\footnote{Here ties are broken arbitrarily},
+\begin{equation}
+    \pi'_{\varepsilon}(a | s) = \begin{cases}
+        1 - \varepsilon + \frac{\varepsilon}{\left|A(s)\right|}, & a = \arg\max\limits_{a' \in A(s)} q_{\pi}(s, a)\\
+        \frac{\varepsilon}{\left|A(s)\right|}, & a \neq \arg\max\limits_{a' \in A(s)} q_{\pi}(s, a)
+    \end{cases}
+\end{equation}
+Therefore,
+\begin{equation}
+    \sum_{a \in A(s)} \pi'_{\varepsilon}(a | s) q_{\pi}(s, a) = \frac{\varepsilon}{\left|A(s)\right|}\sum_{a \in A(s)} q_{\pi}(s, a) + (1 - \varepsilon) \max_{a \in A(s)} q_{\pi}(s, a)
+\end{equation}
+Now, 
+\begin{equation}
+    \frac{\varepsilon}{\left|A(s)\right|}\sum_{a \in A(s)} q_{\pi}(s, a) + (1 - \varepsilon) \max_{a \in A(s)} q_{\pi}(s, a) \geq \frac{\varepsilon}{\left|A(s)\right|}\sum_{a \in A(s)} q_{\pi}(s, a) + (1 - \varepsilon) \sum_{a \in A(s)} \frac{\pi(a | s) - \frac{\varepsilon}{\left|A(s)\right|}}{1 - \varepsilon} q_{\pi}(s, a)
+\end{equation}
+and the RHS here comes out to be $v_{\pi}(s)$.
+
+Therefore, $\sum_{a \in A(s)} \pi'_{\varepsilon}(a | s) q_{\pi}(s, a) \geq v_{\pi}(s)$, which implies that $\pi'_{\varepsilon} \geq \pi$, ie our $\varepsilon$-soft improved policy is at least as good as our previous policy. If $\pi'_{\varepsilon} = \pi$, then it must be the case that $\pi$ is the optimal policy among the $\varepsilon$-soft policies.
+
+If $\pi'_{\varepsilon} = \pi$, then we must have $\sum\limits_{a \in A(s)} \pi'(a | s) q_{\pi}(s, a) = v_{\pi}(s)$. Now using equation (5.5) and the relation $q_{\pi}(s, a) = \sum\limits_{r, s' \in S} p(s', r | s, a)(r + \gamma v_{\pi}(s))$, we get
+\begin{equation}
+    v_{\pi}(s) = (1 - \varepsilon) \max_{a \in A(s)} \sum_{r, s' \in S} p(s', r | s, a)(r + \gamma v_{\pi}(s)) + \frac{\varepsilon}{\left|A(s)\right|} \sum_{\substack{a \in A(s)\\r, s' \in S}} p(s', r | s, a)(r + \gamma v_{\pi}(s))
+\end{equation}
+
+Now consider a new MDP, identical to the old MDP, except that after an action is chosen, with probability $\varepsilon$ it repicks a random action and goes with this instead. Therefore, we have
+\begin{equation}
+    \tilde{p}(s', r | s, a) = \frac{\varepsilon}{\left|A(s)\right|} \sum_{a' \in A(s)} p(s', r | s, a') + (1 - \varepsilon) p(s', r | s, a)
+\end{equation}
+Now, any policy on this new MDP corresponds to the $\varepsilon$-soft version of that policy on the old MDP.
+
+For this MDP, the Bellman Optimality Equations become
+\begin{equation}
+    \tilde{v}_{*}(s) = \max_{a \in A(s)} \sum_{r, s' \in S} \tilde{p}(s', r | s, a)(r + \gamma \tilde{v}_{*}(s))
+\end{equation}
+Expanding this, we get
+\begin{equation}
+    \tilde{v}_{*}(s) = (1 - \varepsilon) \max_{a \in A(s)} \sum_{r, s' \in S} p(s', r | s, a)(r + \gamma \tilde{v}_{*}(s)) + \frac{\varepsilon}{\left|A(s)\right|} \sum_{\substack{a \in A(s)\\r, s' \in S}} p(s', r | s, a)(r + \gamma \tilde{v}_{*}(s))
+\end{equation}
+
+Notice that equations (5.11) and (5.8) are the same, and since equation (5.11) is a Bellman Optimality Equation, it has a unique solution. Therefore, we must have $v_{\pi} = \tilde{v}_{*}$, ie $\pi$ is optimal among $\varepsilon$-soft policies.
+
+In the final algorithm, we simulate an episode of the MDP with a policy $\pi$, update our estimates of all the state action pairs that appeared in this episode via first visit or every visit estimation, then during policy improvement, make $\pi$ greedy with respect to the updated action value function, and then make $\pi$ $\varepsilon$-soft, and repeat.
+
+There exist on-policy analogs of most Bandit algorithms for MDPs. The main difference is that we average returns instead of rewards. 
+
+\subsection{Off Policy Estimation: Importance Sampling}
+In off-policy methods, we use a different policy to simulate episodes of the MDP than the one we are improving. The policy used to simulate episodes is known as the \textit{behaviour} policy and the one being improved is known as the \textit{target} policy. The idea is that the target policy can be exploitative (usually deterministic and greedy) whereas the behaviour policy can explore.
+
+Say $\mu$ is the behaviour policy and $\pi$ is the target policy. We wish to estimate $v_{\pi}$ from episodes simulated with $\mu$. To do this we need actions taken under $\pi$ to also occasionally be taken by $\mu$ as well, ie $\forall s \in S, a \in A(s): \pi(a | s) > 0 \implies \mu(a | s) > 0$. This is known as the coverage assumption.
 \end{document}
